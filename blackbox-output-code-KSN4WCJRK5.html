@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cart - Household Utility Store</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Shopping Cart</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="products.html">Products</a>
+      <a href="login.html">Login</a>
+      <button onclick="logout()">Logout</button>
+    </nav>
+  </header>
+
+  <main>
+    <div id="cart-items"></div>
+    <div class="cart-summary">
+      <p id="cart-total">Total: Rs. 0.00</p>
+      <p id="cart-discount">Discount: Rs. 0.00</p>
+      <p id="cart-final">Final: Rs. 0.00</p>
+      <button id="checkout-btn" onclick="window.location.href='checkout.html'" style="display:none;">Proceed to Checkout</button>
+    </div>
+  </main>
+
+  <script src="scripts.js"></script>
+</body>
+</html>

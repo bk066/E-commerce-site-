@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Household Utility Store</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Household Utility Store</h1>
+    <nav>
+      <a href="products.html">Products</a>
+      <a href="cart.html">Cart</a>
+      <a href="login.html">Login</a>
+      <a href="register.html">Register</a>
+      <button onclick="logout()">Logout</button>
+    </nav>
+  </header>
+
+  <main>
+    <section>
+      <h2>Welcome to Our Store</h2>
+      <p>Browse groceries and cleaning products.</p>
+      <input type="text" id="search-input" placeholder="Search products..." oninput="searchProducts()">
+      <select id="category-filter" onchange="searchProducts()">
+        <option value="">All Categories</option>
+        <option value="Groceries">Groceries</option>
+        <option value="Cleaning Products">Cleaning Products</option>
+      </select>
+      <a href="products.html" class="btn">View All Products</a>
+    </section>
+  </main>
+
+  <script src="scripts.js"></script>
+</body>
+</html>

@@ -1,0 +1,324 @@
+const API_BASE = 'http://localhost:3000';
+
+// Utility: Get JWT token from localStorage
+function getToken() {
+  return localStorage.getItem('token');
+}
+
+// Utility: Set JWT token
+function setToken(token) {
+  localStorage.setItem('token', token);
+}
+
+// Utility: Remove JWT token
+function removeToken() {
+  localStorage.removeItem('token');
+}
+
+// Fetch products and render on products.html
+async function loadProducts() {
+  try {
+    const res = await fetch(`${API_BASE}/products`);
+    const products = await res.json();
+    const container = document.getElementById('product-list');
+    container.innerHTML = '';
+
+    products.forEach(product => {
+      const card = document.createElement('div');
+      card.className = 'product-card';
+      card.innerHTML = `
+        <img src="${product.image_url}" alt="${product.name}">
+        <h3>${product.name}</h3>
+        <p>Rs. ${product.price.toFixed(2)}</p>
+        <button onclick="addToCart(${product.id})">Add to Cart</button>
+      `;
+      container.appendChild(card);
+    });
+  } catch (error) {
+    console.error('Error loading products:', error);
+    alert('Failed to load products. Please check if the server is running.');
+  }
+}
+
+// Add product to cart
+async function addToCart(productId) {
+  const quantity = 1; // default quantity
+  const token = getToken();
+  if (!token) {
+    alert('Please login to add items to cart.');
+    window.location.href = 'login.html';
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/cart`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ product_id: productId, quantity })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      alert('Item added to cart');
+      // Optionally update cart count or refresh page
+    } else {
+      alert(data.error || 'Failed to add to cart');
+    }
+  } catch (error) {
+    console.error('Error adding to cart:', error);
+    alert('Error adding to cart. Please try again.');
+  }
+}
+
+// Load cart items and render on cart.html
+async function loadCart() {
+  const token = getToken();
+  if (!token) {
+    alert('Please login to view cart.');
+    window.location.href = 'login.html';
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/cart`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const cartItems = await res.json();
+
+    const container = document.getElementById('cart-items');
+    container.innerHTML = '';
+
+    let total = 0;
+    let discount = 0;
+    let finalAmount = 0;
+
+    if (cartItems.length === 0) {
+      container.innerHTML = '<p>Your cart is empty.</p>';
+      return;
+    }
+
+    cartItems.forEach(item => {
+      const itemTotal = item.price * item.quantity;
+      total += itemTotal;
+
+      const row = document.createElement('div');
+      row.className = 'cart-item';
+      row.innerHTML = `
+        <img src="${item.image_url}" alt="${item.name}" style="width: 50px; height: 50px;">
+        <span>${item.name} x ${item.quantity}</span>
+        <span>Rs. ${itemTotal.toFixed(2)}</span>
+        <button onclick="removeFromCart(${item.cart_id})">Remove</button>
+      `;
+      container.appendChild(row);
+    });
+
+    // Calculate discount and final amount (client-side preview)
+    if (total >= 2500) {
+      discount = total * 0.10;
+    }
+    finalAmount = total - discount;
+
+    // Update totals
+    document.getElementById('cart-total').textContent = `Total: Rs. ${total.toFixed(2)}`;
+    document.getElementById('cart-discount').textContent = `Discount: Rs. ${discount.toFixed(2)}`;
+    document.getElementById('cart-final').textContent = `Final: Rs. ${finalAmount.toFixed(2)}`;
+
+    // Checkout button
+    const checkoutBtn = document.getElementById('checkout-btn');
+    if (checkoutBtn) {
+      checkoutBtn.style.display = 'block';
+    }
+  } catch (error) {
+    console.error('Error loading cart:', error);
+    alert('Failed to load cart. Please try again.');
+  }
+}
+
+// Remove item from cart
+async function removeFromCart(cartId) {
+  const token = getToken();
+  if (!token) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/cart/${cartId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.ok) {
+      alert('Item removed from cart');
+      loadCart(); // Refresh cart
+    } else {
+      const data = await res.json();
+      alert(data.error || 'Failed to remove item');
+    }
+  } catch (error) {
+    console.error('Error removing from cart:', error);
+  }
+}
+
+// User registration
+async function registerUser () {
+  const formData = {
+    name: document.getElementById('reg-name').value,
+    email: document.getElementById('reg-email').value,
+    password: document.getElementById('reg-password').value,
+    contact: document.getElementById('reg-contact').value,
+    address: document.getElementById('reg-address').value,
+    city: document.getElementById('reg-city').value,
+    pin: document.getElementById('reg-pin').value
+  };
+
+  if (!formData.name || !formData.email || !formData.password || !formData.contact || !formData.address || !formData.city || !formData.pin) {
+    alert('Please fill all fields.');
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+    const data = await res.json();
+    if (res.ok) {
+      alert('Registration successful! Please login.');
+      window.location.href = 'login.html';
+    } else {
+      alert(data.error || 'Registration failed');
+    }
+  } catch (error) {
+    console.error('Error registering:', error);
+    alert('Error during registration.');
+  }
+}
+
+// User login
+async function loginUser () {
+  const formData = {
+    email: document.getElementById('login-email').value,
+    password: document.getElementById('login-password').value
+  };
+
+  if (!formData.email || !formData.password) {
+    alert('Please enter email and password.');
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setToken(data.token);
+      alert('Login successful!');
+      window.location.href = 'products.html';
+    } else {
+      alert(data.error || 'Login failed');
+    }
+  } catch (error) {
+    console.error('Error logging in:', error);
+    alert('Error during login.');
+  }
+}
+
+// Place order on checkout.html
+async function placeOrder() {
+  const token = getToken();
+  if (!token) {
+    alert('Please login first.');
+    return;
+  }
+
+  const deliveryInfo = {
+    address: document.getElementById('checkout-address').value,
+    city: document.getElementById('checkout-city').value,
+    pin: document.getElementById('checkout-pin').value
+  };
+
+  if (!deliveryInfo.address || !deliveryInfo.city || !deliveryInfo.pin) {
+    alert('Please fill delivery information.');
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/order`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ deliveryInfo })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      alert(`Order placed successfully! Order ID: ${data.orderId}`);
+      removeToken(); // Logout after order (optional)
+      window.location.href = 'index.html';
+    } else {
+      alert(data.error || 'Order placement failed');
+    }
+  } catch (error) {
+    console.error('Error placing order:', error);
+    alert('Error during order placement.');
+  }
+}
+
+// Logout function (add to nav if needed)
+function logout() {
+  removeToken();
+  alert('Logged out successfully.');
+  window.location.href = 'index.html';
+}
+
+// Initialize pages on load
+document.addEventListener('DOMContentLoaded', () => {
+  const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+  
+  if (currentPage.includes('products')) {
+    loadProducts();
+  } else if (currentPage.includes('cart')) {
+    loadCart();
+  } else if (currentPage.includes('register')) {
+    // Registration form event listeners
+    document.getElementById('register-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      registerUser ();
+    });
+  } else if (currentPage.includes('login')) {
+    // Login form event listeners
+    document.getElementById('login-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      loginUser ();
+    });
+  } else if (currentPage.includes('checkout')) {
+    // Checkout form event listeners
+    document.getElementById('checkout-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      placeOrder();
+    });
+    // Load cart for order summary
+    loadCart();
+  }
+});
+
+// Search and filter (basic implementation for index.html/products.html)
+function searchProducts() {
+  const query = document.getElementById('search-input').value.toLowerCase();
+  const category = document.getElementById('category-filter').value;
+  
+  // This would filter the loaded products client-side; for full search, add backend endpoint
+  const products = document.querySelectorAll('.product-card');
+  products.forEach(product => {
+    const name = product.querySelector('h3').textContent.toLowerCase();
+    const cat = product.dataset.category || ''; // Assume data-category on cards
+    let show = true;
+    if (query && !name.includes(query)) show = false;
+    if (category && !cat.includes(category)) show = false;
+    product.style.display = show ? 'block' : 'none';
+  });
+}
