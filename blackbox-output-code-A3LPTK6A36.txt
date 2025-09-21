@@ -1,0 +1,8 @@
+
+## Setup Instructions
+
+1. **Prerequisites**:
+   - Node.js (v14+)
+   - No external API keys or databases required.
+
+2. **Installation**:

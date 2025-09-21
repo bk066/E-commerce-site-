@@ -1,0 +1,36 @@
+- Backend server runs on `http://localhost:3000`.
+- Open `frontend/index.html` in a browser (or serve via a local server like Live Server in VS Code).
+
+5. **Testing**:
+- Register a user at `/register.html`.
+- Login at `/login.html`.
+- Browse products at `/products.html` and add to cart.
+- View cart at `/cart.html` and proceed to checkout.
+- Place order at `/checkout.html` (requires login).
+
+6. **Images**:
+- Create `/images` folder and add product images (e.g., rice.jpg).
+- Or update `seed.sql` with placeholder URLs like `https://via.placeholder.com/150?text=Product`.
+
+7. **API Endpoints** (for reference/testing with Postman):
+- `GET /products` - Fetch all products.
+- `POST /register` - User registration (body: {name, email, password, contact, address, city, pin}).
+- `POST /login` - User login (body: {email, password}) → Returns JWT token.
+- `POST /cart` - Add to cart (auth required, body: {product_id, quantity}).
+- `DELETE /cart/:id` - Remove from cart (auth required).
+- `GET /cart` - Get user's cart (auth required).
+- `POST /order` - Place order (auth required, body: {deliveryInfo: {address, city, pin}}).
+
+## Security Notes
+- JWT secret: Change `'your_jwt_secret_key'` in controllers/middleware to a secure value (use `.env` file).
+- Passwords: Hashed with bcrypt.
+- Production: Use HTTPS, rate limiting, and input sanitization.
+
+## Troubleshooting
+- **Server not starting**: Check Node.js installation and `npm install`.
+- **Database errors**: Ensure write permissions in `/database` folder.
+- **CORS issues**: Already handled with `cors` middleware.
+- **Images not loading**: Use absolute URLs or local server for frontend.
+
+## License
+For demo purposes only. Feel free to extend!

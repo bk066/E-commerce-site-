@@ -1,0 +1,6 @@
+
+3. **Database Setup**:
+- The server auto-runs `schema.sql` and `seed.sql` on first start.
+- Database file: `database/db.sqlite` (created automatically).
+
+4. **Run the Application**:

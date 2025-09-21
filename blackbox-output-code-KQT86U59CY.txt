@@ -1,0 +1,17 @@
+# Household Utility Store - Full E-Commerce Website
+
+A complete, self-contained e-commerce website for a household utility store with backend API, SQLite database, and responsive frontend.
+
+## Features
+- **Product Catalog**: Browse groceries and cleaning products with grid layout.
+- **Shopping Cart**: Add/remove items, live totals, 10% discount on orders ≥ Rs. 2500.
+- **User  Authentication**: Registration and login with JWT.
+- **Checkout**: Order placement with delivery info and stock management.
+- **Responsive Design**: Mobile-first UI with specified color scheme.
+
+## Tech Stack
+- **Backend**: Node.js + Express + SQLite3 + bcrypt + jsonwebtoken
+- **Frontend**: HTML5 + CSS3 + Vanilla JavaScript (Fetch API)
+- **Database**: SQLite (local, no external dependencies)
+
+## File Structure

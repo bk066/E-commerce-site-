@@ -1,0 +1,32 @@
+// Database initialization
+const db = require('./config/db');
+const fs = require('fs');
+const path = require('path');
+
+// Run schema on startup if tables don't exist
+const schemaPath = path.join(__dirname, '../../database/schema.sql');
+const schemaSql = fs.readFileSync(schemaPath, 'utf8');
+db.exec(schemaSql, (err) => {
+  if (err) {
+    console.error('Error creating tables:', err);
+  } else {
+    console.log('Database schema initialized');
+  }
+});
+
+// Run seed if no products exist
+db.get('SELECT COUNT(*) as count FROM Products', (err, row) => {
+  if (err) {
+    console.error('Error checking products:', err);
+  } else if (row.count === 0) {
+    const seedPath = path.join(__dirname, '../../database/seed.sql');
+    const seedSql = fs.readFileSync(seedPath, 'utf8');
+    db.exec(seedSql, (err) => {
+      if (err) {
+        console.error('Error seeding database:', err);
+      } else {
+        console.log('Database seeded with sample products');
+      }
+    });
+  }
+});

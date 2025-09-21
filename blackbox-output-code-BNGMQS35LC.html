@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout - Household Utility Store</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Checkout</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="cart.html">Cart</a>
+      <button onclick="logout()">Logout</button>
+    </nav>
+  </header>
+
+  <main>
+    <div id="order-summary">
+      <h3>Order Summary</h3>
+      <div id="cart-items"></div> <!-- Cart items loaded via JS -->
+      <div class="cart-summary">
+        <p id="cart-total">Total: Rs. 0.00</p>
+        <p id="cart-discount">Discount: Rs. 0.00</p>
+        <p id="cart-final">Final: Rs. 0.00</p>
+      </div>
+    </div>
+    
+    <form id="checkout-form">
+      <h3>Delivery Information</h3>
+      <input type="text" id="checkout-address" placeholder="Street Address" required>
+      <input type="text" id="checkout-city" placeholder="City" required>
+      <input type="text" id="checkout-pin" placeholder="Pin Code" required>
+      <button type="submit">Place Order</button>
+    </form>
+  </main>
+
+  <script src="scripts.js"></script>
+</body>
+</html>
