@@ -1,0 +1,72 @@
+const db = require('../config/db');
+
+exports.addToCart = (req, res) => {
+  const userId = req.user.id;
+  const { product_id, quantity } = req.body;
+
+  if (!product_id || !quantity || quantity <= 0) {
+    return res.status(400).json({ error: 'Product ID and positive quantity required' });
+  }
+
+  // Check if product exists and stock is sufficient
+  const productSql = 'SELECT stock FROM Products WHERE id = ?';
+  db.get(productSql, [product_id], (err, product) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!product) return res.status(404).json({ error: 'Product not found' });
+    if (product.stock < quantity) return res.status(400).json({ error: 'Insufficient stock' });
+
+    // Check if item already in cart
+    const cartCheckSql = 'SELECT * FROM Cart WHERE user_id = ? AND product_id = ?';
+    db.get(cartCheckSql, [userId, product_id], (err, cartItem) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      if (cartItem) {
+        // Update quantity
+        const newQuantity = cartItem.quantity + quantity;
+        if (newQuantity > product.stock) {
+          return res.status(400).json({ error: 'Insufficient stock for requested quantity' });
+        }
+        const updateSql = 'UPDATE Cart SET quantity = ? WHERE id = ?';
+        db.run(updateSql, [newQuantity, cartItem.id], function (err) {
+          if (err) return res.status(500).json({ error: err.message });
+          res.json({ message: 'Cart updated' });
+        });
+      } else {
+        // Insert new cart item
+        const insertSql = 'INSERT INTO Cart (user_id, product_id, quantity) VALUES (?, ?, ?)';
+        db.run(insertSql, [userId, product_id, quantity], function (err) {
+          if (err) return res.status(500).json({ error: err.message });
+          res.status(201).json({ message: 'Item added to cart' });
+        });
+      }
+    });
+  });
+};
+
+exports.removeFromCart = (req, res) => {
+  const userId = req.user.id;
+  const cartId = req.params.id;
+
+  const sql = 'DELETE FROM Cart WHERE id = ? AND user_id = ?';
+  db.run(sql, [cartId, userId], function (err) {
+    if (err) return res.status(500).json({ error: err.message });
+    if (this.changes === 0) return res.status(404).json({ error: 'Cart item not found' });
+    res.json({ message: 'Item removed from cart' });
+  });
+};
+
+exports.getCart = (req, res) => {
+  const userId = req.user.id;
+
+  const sql = `
+    SELECT Cart.id as cart_id, Products.id as product_id, Products.name, Products.price, Products.image_url, Cart.quantity
+    FROM Cart
+    JOIN Products ON Cart.product_id = Products.id
+    WHERE Cart.user_id = ?
+  `;
+
+  db.all(sql, [userId], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+};

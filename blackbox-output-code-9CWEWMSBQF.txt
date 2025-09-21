@@ -1,0 +1,9 @@
+/frontend
+ ├── index.html
+ ├── products.html
+ ├── cart.html
+ ├── register.html
+ ├── login.html
+ ├── checkout.html
+ ├── styles.css
+ └── scripts.js

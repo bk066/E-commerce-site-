@@ -1,0 +1,72 @@
+const db = require('../config/db');
+
+exports.placeOrder = (req, res) => {
+  const userId = req.user.id;
+  const { deliveryInfo } = req.body;
+
+  if (!deliveryInfo || !deliveryInfo.address || !deliveryInfo.city || !deliveryInfo.pin) {
+    return res.status(400).json({ error: 'Delivery information incomplete' });
+  }
+
+  // Get cart items for user
+  const cartSql = `
+    SELECT Products.id, Products.price, Products.stock, Cart.quantity
+    FROM Cart
+    JOIN Products ON Cart.product_id = Products.id
+    WHERE Cart.user_id = ?
+  `;
+
+  db.all(cartSql, [userId], (err, cartItems) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (cartItems.length === 0) return res.status(400).json({ error: 'Cart is empty' });
+
+    // Calculate total and check stock
+    let total = 0;
+    for (const item of cartItems) {
+      if (item.stock < item.quantity) {
+        return res.status(400).json({ error: `Insufficient stock for product ID ${item.id}` });
+      }
+      total += item.price * item.quantity;
+    }
+
+    // Calculate discount
+    let discount = 0;
+    if (total >= 2500) {
+      discount = total * 0.10;
+    }
+    const finalAmount = total - discount;
+
+    // Insert order
+    const date = new Date().toISOString();
+    const insertOrderSql = `INSERT INTO Orders (user_id, total, discount, final_amount, date) VALUES (?, ?, ?, ?, ?)`;
+
+    db.run(insertOrderSql, [userId, total, discount, finalAmount, date], function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+
+      const orderId = this.lastID;
+
+      // Update product stock and clear cart in a transaction
+      db.serialize(() => {
+        const updateStockStmt = db.prepare('UPDATE Products SET stock = stock - ? WHERE id = ?');
+        const deleteCartStmt = db.prepare('DELETE FROM Cart WHERE user_id = ?');
+
+        for (const item of cartItems) {
+          updateStockStmt.run(item.quantity, item.id);
+        }
+        updateStockStmt.finalize();
+
+        deleteCartStmt.run(userId);
+        deleteCartStmt.finalize();
+
+        res.json({
+          message: 'Order placed successfully',
+          orderId,
+          total,
+          discount,
+          finalAmount,
+          deliveryInfo
+        });
+      });
+    });
+  });
+};

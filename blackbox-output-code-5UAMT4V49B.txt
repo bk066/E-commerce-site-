@@ -1,0 +1,11 @@
+const db = require('../config/db');
+
+exports.getProducts = (req, res) => {
+  const sql = 'SELECT * FROM Products';
+  db.all(sql, [], (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(rows);
+  });
+};
